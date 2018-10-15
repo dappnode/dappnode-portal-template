@@ -1,0 +1,18 @@
+{
+  "mainnet": {
+    "http": "http://my.ethchain.dnp.dappnode.eth:8545",
+    "ws": "ws://my.ethchain.dnp.dappnode.eth:8546"
+  },
+  "ropsten": {
+    "http": "http://my.ropsten.dnp.dappnode.eth:8545",
+    "ws": "ws://my.ropsten.dnp.dappnode.eth:8546"
+  },
+  "rinkeby": {
+    "http": "http://my.rinkeby.dnp.dappnode.eth:8545",
+    "ws": "ws://my.rinkeby.dnp.dappnode.eth:8546"
+  },
+  "kovan": {
+    "http": "http://my.kovan.dnp.dappnode.eth:8545",
+    "ws": "ws://my.kovan.dnp.dappnode.eth:8546"
+  }
+}

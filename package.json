@@ -1,17 +1,21 @@
 {
   "name": "dappnode-dweb-template",
+  "homepage": "./",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^3.2.1",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
-    "react-scripts": "2.0.5"
+    "react-scripts": "2.0.5",
+    "web3": "^1.0.0-beta.36"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "publish": "react-scripts build && node_modules/.bin/ipfsuploader build/"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -21,5 +25,10 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@dappnode/ipfsuploader": "^1.0.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "prettier": "1.14.3"
+  }
 }
