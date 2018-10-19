@@ -15,7 +15,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "publish": "react-scripts build && node_modules/.bin/ipfsuploader build/"
+    "publish": "react-scripts build && node_modules/.bin/ipfsuploader build/",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@dappnode/ipfsuploader": "^1.0.0",
     "eslint-plugin-prettier": "^3.0.0",
+    "gh-pages": "^2.0.1",
     "prettier": "1.14.3"
   }
 }
