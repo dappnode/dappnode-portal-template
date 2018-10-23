@@ -48,6 +48,16 @@ main {
   line-height: 1;
   letter-spacing: -0.00833em;
 }
+.error-header {
+  color: red;
+  font-size: 1.75rem;
+  font-weight: 300;
+}
+.success-header {
+  color: green;
+  font-size: 1.75rem;
+  font-weight: 300;
+}
 
 /* Card */
 

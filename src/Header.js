@@ -10,8 +10,7 @@ const Header = () => (
       <div className="toolbar">
         <img src={logo} alt="dappnode-logo" className="logo" />
       </div>
-      <Button>Decentralize</Button>
-      <Button>Docs</Button>
+      <Button href="https://dappnode.readthedocs.io/en/latest/">Docs</Button>
     </Toolbar>
   </AppBar>
 );
