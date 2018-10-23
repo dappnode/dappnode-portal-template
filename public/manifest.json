@@ -1,6 +1,6 @@
 {
-  "short_name": "DAppNode Dweb",
-  "name": "DAppNode Dweb template",
+  "short_name": "Dweb publisher",
+  "name": "DAppNode Dweb Publisher",
   "icons": [
     {
       "src": "android-chrome-192x192.png",

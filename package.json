@@ -1,7 +1,7 @@
 {
   "name": "dappnode-dweb-template",
   "homepage": "./",
-  "homepageGithub": "http://dapplion.github.io/dappnode-dweb-template",
+  "homepageGithub": "http://dappnode.github.io/DWeb_publisher",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
