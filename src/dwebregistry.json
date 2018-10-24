@@ -1,5 +1,6 @@
 {
   "address": "0xc58df5619abdc3205f367dceffcfd4015994dc60",
+  "deployBlock": 6568961,
   "abi": [
     {
       "constant": true,

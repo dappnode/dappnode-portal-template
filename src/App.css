@@ -29,6 +29,10 @@ main {
 }
 /* Hero */
 
+.paper {
+  text-align: "center";
+}
+
 .hero-content {
   margin: 0 auto;
   padding: 64px 0 48px;
@@ -60,6 +64,20 @@ main {
 }
 
 /* Card */
+
+.card-content {
+  color: #0000008a;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.0075em;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .card {
   transition: background-color 0.5s ease;

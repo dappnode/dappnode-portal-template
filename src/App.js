@@ -1,13 +1,22 @@
 import React, { Component } from "react";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
 import Header from "./Header";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Button from "@material-ui/core/Button";
+import Grid from "@material-ui/core/Grid";
 import dwebregistryData from "./dwebregistry.json";
-import isIPFS from "is-ipfs";
 import Web3 from "web3";
-import multihashes from "multihashes";
+import providers from "./providers.json";
 import "./App.css";
+
+const web3 = new Web3(providers.mainnet.ws);
+
+function belongsToRoot({ label, node, rootNode }) {
+  const _node = web3.utils.sha3(rootNode + web3.utils.sha3(label).slice(2));
+  return _node === node;
+}
 
 // ##### DEVELOPMENT
 // dweb.eduadiez.eth
@@ -19,11 +28,66 @@ class App extends Component {
     super(props);
     this.state = {
       subdomain: "",
-      hash: ""
+      hash: "",
+      dwebs: []
     };
   }
 
   componentDidMount() {
+    const dwebRegistry = new web3.eth.Contract(
+      dwebregistryData.abi,
+      dwebregistryData.address
+    );
+
+    const _this = this;
+
+    dwebRegistry
+      .getPastEvents("NewDWeb", {
+        fromBlock: dwebregistryData.deployBlock,
+        toBlock: "latest"
+      })
+      .then(events => {
+        const dwebs = events
+          .filter(event =>
+            belongsToRoot({
+              label: event.returnValues.label,
+              node: event.returnValues.node,
+              rootNode
+            })
+          )
+          .map(event => ({
+            name: event.returnValues.label,
+            date: event.blockNumber,
+            url: `http://${event.returnValues.label}.dweb.dappnode.eth/`
+          }));
+        _this.setState({ dwebs });
+      });
+
+    try {
+      dwebRegistry.events
+        .NewDWeb()
+        .on("data", event => {
+          if (
+            belongsToRoot({
+              label: event.returnValues.label,
+              node: event.returnValues.node,
+              rootNode
+            })
+          ) {
+            const dwebs = _this.state.dwebs;
+            dwebs.push({
+              name: event.returnValues.label,
+              date: event.blockNumber,
+              url: `http://${event.returnValues.label}.dweb.dappnode.eth/`
+            });
+            _this.setState({ dwebs });
+          }
+        })
+        .on("error", console.error);
+    } catch (e) {
+      // 
+    }
+
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     if (typeof window.web3 === "undefined") {
       this.setState({ errorMsg: "You need MetaMask to publish your website" });
@@ -50,85 +114,6 @@ class App extends Component {
     });
   }
 
-  async publish() {
-    this.setState({ errorMsg: null });
-    const { subdomain, hash } = this.state;
-    // function createDWeb(
-    //   bytes32 _rootNode,
-    //   string _label,
-    //   string dnslink,
-    //   bytes32 content
-    // ) external returns (bytes32 node)
-
-    const dnslink = `/ipfs/${hash}`;
-
-    const buf = multihashes.fromB58String(hash);
-    const dig = multihashes.decode(buf).digest;
-    const content = `0x${multihashes.toHexString(dig)}`;
-
-    const dwebRegistry = new window.web3js.eth.Contract(
-      dwebregistryData.abi,
-      dwebregistryData.address
-    );
-
-    const yourAddress = await this.getAccounts().catch(e => {
-      console.log("Error getting accounts: ", e);
-      this.setState({ errorMsg: e.message });
-    });
-    if (!yourAddress) return;
-
-    const method = dwebRegistry.methods.createDWeb(
-      rootNode,
-      subdomain,
-      dnslink,
-      content
-    );
-
-    console.log({
-      rootNode,
-      subdomain,
-      dnslink,
-      content
-    });
-
-    const gasAmount = await method
-      .estimateGas({
-        from: yourAddress,
-        gas: 5000000
-      })
-      .then(gas => (gas < 5000000 ? gas : null))
-      .catch(e => {
-        console.error("Error estimating gas: ", e);
-        return null;
-      });
-
-    console.log("Gas amount: ", gasAmount);
-
-    method
-      .send({ from: yourAddress, gas: gasAmount || 250000 })
-      .on("receipt", function(receipt) {
-        this.showSuccess.bind(this);
-      });
-
-    const tx = {
-      data: method.encodeABI(),
-      to: dwebregistryData.address,
-      gas: 250000,
-      value: 0
-    };
-    this.setState({ tx });
-
-    // window.web3js.eth
-    //   .sendTransaction({
-    //     from: "0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe",
-    //     to: "0x11f4d0A3c12e86B4b5F39B213F7E19D048276DAe",
-    //     value: "1000000000000000"
-    //   })
-    //   .then(function(receipt) {
-    //     console.log("Got receipt: ", receipt);
-    //   });
-  }
-
   showSuccess() {
     this.setState({ successMsg: "Published!" });
   }
@@ -146,8 +131,7 @@ class App extends Component {
   }
 
   render() {
-    const hash = this.state.hash;
-    const validHash = hash !== "" && !isIPFS.multihash(hash);
+    const dwebs = [];
     return (
       <div className="App">
         <React.Fragment>
@@ -177,60 +161,66 @@ class App extends Component {
                 <h2 className="success-header">{this.state.successMsg}</h2>
               ) : null}
 
-              <form
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap"
-                }}
-                noValidate
-                autoComplete="off"
-              >
-                <TextField
-                  label="Subdomain (i.e. mydweb)"
-                  style={{ marginBottom: "30px" }}
-                  fullWidth={true}
-                  value={this.state.subdomain}
-                  onChange={this.handleSubdomain.bind(this)}
-                />
-                <TextField
-                  label="IPFS hash (i.e. QmF2saa...)"
-                  style={{ marginBottom: "30px" }}
-                  error={validHash}
-                  helperText={validHash ? "Introduce a valid IPFS hash" : ""}
-                  fullWidth={true}
-                  value={this.state.hash}
-                  onChange={this.handleHash.bind(this)}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={this.publish.bind(this)}
-                >
-                  PUBLISH
-                </Button>
-              </form>
-
-              {this.state.tx ? (
-                <div style={{ marginTop: "30px" }}>
-                  <div className="hero-text">Tx data</div>
-                  <div
-                    style={{
-                      backgroundColor: "#eae9e9",
-                      border: "1px solid #e2e2e2",
-                      padding: "15px",
-                      overflowWrap: "break-word"
-                    }}
-                  >
-                    <code>
-                      {Object.keys(this.state.tx).map(key => (
-                        <div>
-                          <strong>{key}:</strong> {this.state.tx[key]}
+              <Grid container spacing={24}>
+                {this.state.dwebs.map(dweb => (
+                  <Grid item xs>
+                    <Card className="clickable">
+                      <CardContent classname="ellipsis">
+                        <div
+                          classname="card-content"
+                          style={{
+                            color: "#3c3c3c",
+                            fontSize: "1.25rem",
+                            fontWeight: 500,
+                            lineHeight: 1.6,
+                            letterSpacing: "0.0075em",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                          }}
+                        >
+                          {dweb.name}
                         </div>
-                      ))}
-                    </code>
-                  </div>
-                </div>
-              ) : null}
+                        <div
+                          classname="card-content"
+                          style={{
+                            color: "#8c8c8c",
+                            fontSize: "0.75rem",
+                            fontWeight: 500,
+                            lineHeight: 1.6,
+                            letterSpacing: "0.0075em",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                          }}
+                        >
+                          {`${dweb.name}.dweb.dappnode.eth/`}
+                        </div>
+                        <div
+                          classname="card-content"
+                          style={{
+                            color: "#b9b9b9",
+                            fontSize: "1rem",
+                            fontWeight: 500,
+                            lineHeight: 1.6,
+                            letterSpacing: "0.0075em",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                          }}
+                        >
+                          {dweb.date}
+                        </div>
+                      </CardContent>
+                      <CardActions>
+                        <Button size="small" target="_blank" href={dweb.url}>
+                          Visit
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
             </div>
           </main>
         </React.Fragment>
